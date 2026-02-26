@@ -281,16 +281,16 @@ with st.sidebar:
             text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-    <span style="font-size: 2.5rem;">♻️</span>
-    <h3 style="margin: 10px 0; color: white; font-weight: 800; letter-spacing: 1px;">EcoLoop Bharat</h3>
-    <p style="font-size: 1.1rem; margin-bottom: 5px; font-weight: 600;">Team TechnoForge | EWIT CSE</p>
-    <hr style="border: 0.5px solid rgba(255,255,255,0.3); width: 50%; margin: 10px auto;">
-    <p style="font-size: 0.9rem; line-height: 1.4;">
-        <b>LiveAI™ Circular Traceability</b><br>
-        Powered by Pathway Rust Engine<br>
-        Real-time Zero-Displacement Analytics
-    </p>
-</div>
+            <span style="font-size: 2.5rem;">♻️</span>
+            <h3 style="margin: 10px 0; color: white; font-weight: 800; letter-spacing: 1px;">EcoLoop Bharat</h3>
+            <p style="font-size: 1.1rem; margin-bottom: 5px; font-weight: 600;">Team TechnoForge | EWIT CSE</p>
+            <hr style="border: 0.5px solid rgba(255,255,255,0.3); width: 50%; margin: 10px auto;">
+            <p style="font-size: 0.9rem; line-height: 1.4;">
+                <b>LiveAI™ Circular Traceability</b><br>
+                Powered by Pathway Rust Engine<br>
+                Real-time Zero-Displacement Analytics
+            </p>
+        </div>
     """, unsafe_allow_html=True)
     
     st.markdown("---")
@@ -351,6 +351,31 @@ def create_sample_data():
     materials = ['Plastic', 'E-Waste', 'Metal', 'Paper', 'Glass', 'Organic']
     cities = ['Delhi', 'Mumbai', 'Bengaluru', 'Chennai', 'Kolkata', 'Pune']
     
+    # Indian cities with their coordinates
+    city_coords = {
+        'Delhi': (28.6139, 77.2090),
+        'Mumbai': (19.0760, 72.8777),
+        'Bengaluru': (12.9716, 77.5946),
+        'Chennai': (13.0827, 80.2707),
+        'Kolkata': (22.5726, 88.3639),
+        'Pune': (18.5204, 73.8567),
+        'Hyderabad': (17.3850, 78.4867),
+        'Ahmedabad': (23.0225, 72.5714),
+        'Jaipur': (26.9124, 75.7873),
+        'Lucknow': (26.8467, 80.9462)
+    }
+    
+    # Generate more realistic GPS coordinates (clustered around major cities)
+    gps_lats = []
+    gps_lons = []
+    
+    for _ in range(n_samples):
+        city = np.random.choice(list(city_coords.keys()))
+        lat, lon = city_coords[city]
+        # Add small random variation
+        gps_lats.append(lat + np.random.uniform(-0.5, 0.5))
+        gps_lons.append(lon + np.random.uniform(-0.5, 0.5))
+    
     data = {
         'product_id': [f"PROD-{i:06d}" for i in range(n_samples)],
         'manufacturer_name': np.random.choice(manufacturers, n_samples),
@@ -358,12 +383,13 @@ def create_sample_data():
         'weight_kg': np.random.uniform(0.5, 50, n_samples),
         'carbon_footprint': np.random.uniform(1, 25, n_samples),
         'manufacturing_date': [(datetime.now() - timedelta(days=np.random.randint(1, 60))).timestamp() for _ in range(n_samples)],
-        'gps_lat': np.random.uniform(8.0, 37.0, n_samples),
-        'gps_lon': np.random.uniform(68.0, 97.0, n_samples),
+        'gps_lat': gps_lats,
+        'gps_lon': gps_lons,
         'recovered': np.random.choice([True, False], n_samples, p=[0.65, 0.35]),
         'circular_credit_amount': np.random.uniform(100, 5000, n_samples),
         'recovery_center_name': np.random.choice(['Delhi Hub', 'Mumbai Center', 'Bengaluru Facility'], n_samples),
-        'days_in_transit': np.random.uniform(1, 60, n_samples)
+        'days_in_transit': np.random.uniform(1, 60, n_samples),
+        'city': np.random.choice(list(city_coords.keys()), n_samples)
     }
     
     return pd.DataFrame(data)
@@ -431,38 +457,70 @@ with tab1:
     
     with col1:
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-        st.subheader("📍 Real-time Waste Tracking Map")
+        st.subheader("📍 Real-time Waste Tracking Map - India Focus")
         
-        # Create map
+        # Create map - FIXED TO SHOW ONLY INDIA
         if 'gps_lat' in df.columns and 'gps_lon' in df.columns:
             map_df = df.copy()
             map_df['status'] = map_df['recovered'].map({True: 'Recovered ✅', False: 'Leaked ⚠️'})
             
+            # Filter to India bounds only (optional but ensures no ocean points)
+            india_map_df = map_df[
+                (map_df['gps_lat'].between(6.0, 37.0)) & 
+                (map_df['gps_lon'].between(68.0, 97.0))
+            ]
+            
+            if len(india_map_df) == 0:
+                india_map_df = map_df  # Fallback to original if filtering removes everything
+            
             fig = px.scatter_mapbox(
-                map_df.sample(min(1000, len(map_df))),
+                india_map_df.sample(min(1000, len(india_map_df))),
                 lat='gps_lat',
                 lon='gps_lon',
                 color='status',
                 size='weight_kg',
-                hover_data=['manufacturer_name', 'material_type'],
+                hover_data=['manufacturer_name', 'material_type', 'city' if 'city' in india_map_df.columns else None],
                 color_discrete_map={'Recovered ✅': '#2E7D32', 'Leaked ⚠️': '#C62828'},
                 zoom=4,
-                height=500
+                height=550,
+                title="Live Waste Tracking - India"
             )
             
+            # CRITICAL FIX: Set map to focus ONLY on India
             fig.update_layout(
-                mapbox_style="carto-positron",
-                margin={"r":0, "t":0, "l":0, "b":0},
+                mapbox=dict(
+                    center=dict(lat=22.5, lon=79.0),  # Center of India
+                    zoom=4.0,  # Perfect zoom for India
+                    style="carto-positron"
+                ),
+                margin={"r":0, "t":30, "l":0, "b":0},
                 showlegend=True,
                 legend=dict(
                     yanchor="top",
                     y=0.99,
                     xanchor="left",
-                    x=0.01
+                    x=0.01,
+                    bgcolor="rgba(255,255,255,0.8)",
+                    bordercolor="#2E7D32",
+                    borderwidth=1
                 )
             )
             
+            # Add India outline for better visual
+            fig.update_layout(
+                mapbox_layers=[
+                    {
+                        "sourcetype": "raster",
+                        "source": ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"],
+                        "below": "traces"
+                    }
+                ]
+            )
+            
             st.plotly_chart(fig, use_container_width=True)
+            
+            # Add note about India focus
+            st.caption("📍 Map centered on India - All tracked products shown within Indian territory")
         else:
             st.info("Map data not available")
         
@@ -474,27 +532,54 @@ with tab1:
         
         # Hotspot data
         hotspots = pd.DataFrame({
-            'Location': ['Delhi NCR', 'Mumbai', 'Bengaluru', 'Chennai', 'Kolkata'],
-            'Leakage Rate': [45, 38, 22, 31, 42],
-            'Status': ['Critical', 'High', 'Moderate', 'High', 'Critical']
+            'Location': ['Delhi NCR', 'Mumbai', 'Bengaluru', 'Chennai', 'Kolkata', 'Pune'],
+            'Leakage Rate': [45, 38, 22, 31, 42, 19],
+            'Status': ['Critical', 'High', 'Moderate', 'High', 'Critical', 'Moderate']
         })
         
         for _, row in hotspots.iterrows():
-            color = '#C62828' if row['Leakage Rate'] > 40 else '#F57C00' if row['Leakage Rate'] > 30 else '#2E7D32'
+            if row['Leakage Rate'] > 40:
+                color = '#C62828'
+                badge = 'badge-danger'
+                status_text = 'CRITICAL'
+            elif row['Leakage Rate'] > 30:
+                color = '#F57C00'
+                badge = 'badge-warning'
+                status_text = 'HIGH'
+            else:
+                color = '#2E7D32'
+                badge = 'badge-success'
+                status_text = 'MODERATE'
+                
             st.markdown(f"""
-                <div style="background: white; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 5px solid {color};">
+                <div style="background: white; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 5px solid {color}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong>{row['Location']}</strong>
-                        <span class="badge badge-danger">{row['Status']}</span>
+                        <strong style="font-size: 1.1rem;">{row['Location']}</strong>
+                        <span class="badge {badge}">{status_text}</span>
                     </div>
                     <div style="margin-top: 10px;">
-                        <div style="background: #f0f0f0; height: 8px; border-radius: 4px;">
-                            <div style="background: {color}; width: {row['Leakage Rate']}%; height: 8px; border-radius: 4px;"></div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>Leakage Rate</span>
+                            <span style="font-weight: 600; color: {color};">{row['Leakage Rate']}%</span>
                         </div>
-                        <div style="text-align: right; margin-top: 5px;">{row['Leakage Rate']}% leakage</div>
+                        <div style="background: #f0f0f0; height: 10px; border-radius: 5px; overflow: hidden;">
+                            <div style="background: {color}; width: {row['Leakage Rate']}%; height: 10px; border-radius: 5px;"></div>
+                        </div>
+                        <div style="text-align: right; margin-top: 8px;">
+                            <span style="font-size: 0.9rem; color: #666;">{row['Leakage Rate']}% of products leaked</span>
+                        </div>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
+        
+        # Summary stats
+        st.markdown("""
+            <div style="background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%); padding: 15px; border-radius: 10px; margin-top: 15px;">
+                <p style="margin: 0; font-weight: 600; color: #1B5E20;">📊 Quick Summary</p>
+                <p style="margin: 5px 0 0 0; font-size: 0.9rem;">Worst affected: <b>Delhi NCR</b> (45% leakage)</p>
+                <p style="margin: 2px 0 0 0; font-size: 0.9rem;">Best performer: <b>Pune</b> (19% leakage)</p>
+            </div>
+        """, unsafe_allow_html=True)
         
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -510,6 +595,7 @@ with tab2:
         }).reset_index()
         material_stats.columns = ['material', 'total', 'recovered']
         material_stats['rate'] = (material_stats['recovered'] / material_stats['total'] * 100).round(1)
+        material_stats = material_stats.sort_values('rate', ascending=False)
         
         fig = px.bar(
             material_stats,
@@ -521,7 +607,12 @@ with tab2:
             title="Material-wise Recovery Performance"
         )
         fig.update_traces(texttemplate='%{text}%', textposition='outside')
-        fig.update_layout(height=400)
+        fig.update_layout(
+            height=400,
+            yaxis_title="Recovery Rate (%)",
+            xaxis_title="Material Type",
+            coloraxis_showscale=False
+        )
         st.plotly_chart(fig, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
     
@@ -542,8 +633,27 @@ with tab2:
             title="Recovery Rate Trend (Last 12 Weeks)",
             markers=True
         )
-        fig.update_traces(line_color='#2E7D32', line_width=3)
-        fig.update_layout(height=400)
+        fig.update_traces(
+            line_color='#2E7D32', 
+            line_width=3,
+            marker=dict(size=8, color='#2E7D32')
+        )
+        fig.update_layout(
+            height=400,
+            yaxis_title="Recovery Rate (%)",
+            xaxis_title="Week Number",
+            yaxis=dict(range=[0, 100])
+        )
+        
+        # Add target line
+        fig.add_hline(
+            y=75, 
+            line_dash="dash", 
+            line_color="#F57C00",
+            annotation_text="Target: 75%",
+            annotation_position="bottom right"
+        )
+        
         st.plotly_chart(fig, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -580,20 +690,45 @@ with tab3:
         title="EPR Compliance by Manufacturer"
     )
     fig.update_traces(texttemplate='%{text}%', textposition='outside')
-    fig.update_layout(height=500, xaxis_title="Compliance %", yaxis_title="")
+    fig.update_layout(
+        height=500, 
+        xaxis_title="Compliance %", 
+        yaxis_title="",
+        xaxis=dict(range=[0, 100])
+    )
+    
+    # Add target line
+    fig.add_vline(
+        x=75, 
+        line_dash="dash", 
+        line_color="#2E7D32",
+        annotation_text="Target (75%)",
+        annotation_position="top right"
+    )
+    
     st.plotly_chart(fig, use_container_width=True)
     
     # Compliance table
     st.subheader("📋 Detailed Compliance Report")
+    
+    # Format the dataframe for display
+    display_df = mfg_stats[['manufacturer', 'total', 'recovered', 'compliance', 'status', 'credits']].copy()
+    display_df = display_df.sort_values('compliance', ascending=False)
+    display_df['compliance'] = display_df['compliance'].astype(str) + '%'
+    display_df['credits'] = display_df['credits'].apply(lambda x: f"₹{x:,.0f}")
+    display_df.columns = ['Manufacturer', 'Total Products', 'Recovered', 'Compliance', 'Status', 'Circular Credits']
+    
     st.dataframe(
-        mfg_stats[['manufacturer', 'total', 'recovered', 'compliance', 'status', 'credits']]
-        .sort_values('compliance', ascending=False)
-        .style.format({
-            'compliance': '{:.1f}%',
-            'credits': '₹{:,.0f}'
-        }),
+        display_df,
         use_container_width=True,
-        height=300
+        height=300,
+        column_config={
+            "Status": st.column_config.TextColumn(
+                "Status",
+                help="Compliance status based on 75% target",
+                width="medium"
+            )
+        }
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -605,20 +740,40 @@ with tab4:
         st.subheader("🚨 Critical Alerts")
         
         # Critical alerts
-        critical_leaks = df[df['recovered'] == False].head(3)
-        for _, leak in critical_leaks.iterrows():
-            st.markdown(f"""
-                <div class="critical-alert">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 2rem;">⚠️</span>
-                        <div>
-                            <strong>CRITICAL LEAK DETECTED</strong><br>
-                            Product: {leak['product_id']}<br>
-                            Material: {leak['material_type']}<br>
-                            Days in transit: {leak['days_in_transit']:.0f} days<br>
-                            <span style="color: #C62828; font-weight: 600;">Action: Immediate recovery required</span>
+        critical_leaks = df[df['recovered'] == False].head(5)
+        if len(critical_leaks) > 0:
+            for _, leak in critical_leaks.iterrows():
+                days = int(leak['days_in_transit'])
+                severity = "CRITICAL" if days > 30 else "HIGH" if days > 15 else "MODERATE"
+                
+                st.markdown(f"""
+                    <div class="critical-alert">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="font-size: 2rem;">⚠️</span>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <strong style="color: #C62828;">{severity} LEAK DETECTED</strong>
+                                    <span style="background: #C62828; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">ACTION NEEDED</span>
+                                </div>
+                                <p style="margin: 5px 0; font-size: 0.95rem;">
+                                    <b>Product:</b> {leak['product_id']}<br>
+                                    <b>Material:</b> {leak['material_type']}<br>
+                                    <b>Days in transit:</b> {days} days<br>
+                                    <b>Manufacturer:</b> {leak['manufacturer_name']}
+                                </p>
+                                <div style="background: #ffebee; padding: 8px; border-radius: 5px; margin-top: 5px;">
+                                    <span style="color: #C62828; font-weight: 600;">▶ Immediate recovery required</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+                <div class="success-alert" style="text-align: center;">
+                    <span style="font-size: 3rem;">✅</span>
+                    <h4 style="margin: 10px 0; color: #2E7D32;">No Critical Alerts</h4>
+                    <p>All products are within recovery window</p>
                 </div>
             """, unsafe_allow_html=True)
         
@@ -628,59 +783,75 @@ with tab4:
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         st.subheader("✅ Recent Recoveries")
         
-        recent = df[df['recovered'] == True].tail(3)
-        for _, rec in recent.iterrows():
-            st.markdown(f"""
-                <div class="success-alert">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 2rem;">✅</span>
-                        <div>
-                            <strong>SUCCESSFULLY RECOVERED</strong><br>
-                            Product: {rec['product_id']}<br>
-                            Center: {rec.get('recovery_center_name', 'Unknown')}<br>
-                            Credit: ₹{rec.get('circular_credit_amount', 0):.0f}<br>
-                            <span style="color: #2E7D32;">Carbon saved: {(rec.get('carbon_footprint', 0)*0.7):.1f} kg</span>
+        recent = df[df['recovered'] == True].tail(5)
+        if len(recent) > 0:
+            for _, rec in recent.iterrows():
+                carbon = rec.get('carbon_footprint', 0) * 0.7
+                st.markdown(f"""
+                    <div class="success-alert">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="font-size: 2rem;">✅</span>
+                            <div style="flex: 1;">
+                                <strong style="color: #2E7D32;">SUCCESSFULLY RECOVERED</strong>
+                                <p style="margin: 5px 0; font-size: 0.95rem;">
+                                    <b>Product:</b> {rec['product_id']}<br>
+                                    <b>Center:</b> {rec.get('recovery_center_name', 'Unknown')}<br>
+                                    <b>Credit:</b> ₹{rec.get('circular_credit_amount', 0):.0f}<br>
+                                    <b>Carbon saved:</b> {carbon:.1f} kg
+                                </p>
+                                <div style="background: #E8F5E9; padding: 5px; border-radius: 5px; margin-top: 5px;">
+                                    <span style="color: #2E7D32;">✓ Recycled properly</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+        else:
+            st.info("No recent recoveries")
         
         st.markdown('</div>', unsafe_allow_html=True)
     
     # Activity timeline
     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-    st.subheader("⏱️ Recent Activity Timeline")
+    st.subheader("⏱️ Live Activity Feed")
+    
+    # Create a scrolling feed
+    feed_html = '<div style="height: 300px; overflow-y: scroll; padding: 10px; background: #f8f9fa; border-radius: 10px;">'
     
     timeline_data = []
-    for _, row in df.head(10).iterrows():
-        status = "✅ Recovered" if row['recovered'] else "⚠️ Leaked"
+    current_time = datetime.now()
+    
+    for i, row in df.head(20).iterrows():
+        minutes_ago = np.random.randint(1, 60)
+        event_time = (current_time - timedelta(minutes=minutes_ago)).strftime("%H:%M:%S")
+        status = "✅ RECOVERED" if row['recovered'] else "⚠️ LEAKED"
         color = "#2E7D32" if row['recovered'] else "#C62828"
-        timeline_data.append({
-            "Time": datetime.now().strftime("%H:%M:%S"),
-            "Product": row['product_id'][-8:],
-            "Material": row['material_type'],
-            "Status": status,
-            "color": color
-        })
-    
-    for event in timeline_data:
-        st.markdown(f"""
-            <div style="display: flex; align-items: center; padding: 8px; background: #f8f9fa; margin: 2px 0; border-radius: 5px;">
-                <span style="width: 80px; color: #666;">{event['Time']}</span>
-                <span style="width: 100px; font-weight: 600;">{event['Product']}</span>
-                <span style="width: 100px;">{event['Material']}</span>
-                <span style="color: {event['color']}; font-weight: 600;">{event['Status']}</span>
+        bg_color = "#E8F5E9" if row['recovered'] else "#FFEBEE"
+        
+        feed_html += f"""
+            <div style="display: flex; align-items: center; padding: 10px; background: {bg_color}; margin: 5px 0; border-radius: 8px; border-left: 4px solid {color};">
+                <span style="width: 80px; color: #666; font-size: 0.9rem;">{event_time}</span>
+                <span style="width: 100px; font-weight: 600; color: {color};">{status}</span>
+                <span style="width: 120px; font-size: 0.9rem;">{row['material_type']}</span>
+                <span style="flex: 1; font-size: 0.9rem;">{row['manufacturer_name']}</span>
             </div>
-        """, unsafe_allow_html=True)
+        """
     
+    feed_html += '</div>'
+    st.markdown(feed_html, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 # Footer
 st.markdown("""
     <div class="footer">
-        <p>By TechnoForge Team | 
-        <a href="https://github.com/imaginativeimprint/EcoLoop-Bharat-LiveAI">View on GitHub</a></p>
-        <p style="font-size: 0.8rem; margin-top: 10px;">© 2026 EcoLoop Bharat - Circular Economy Tracker</p>
+        <p style="font-size: 1.1rem; margin-bottom: 5px;"><b>Team TechnoForge</b> | East West Institute of Technology (EWIT), Bengaluru</p>
+        <p style="margin: 5px 0;">
+            <a href="https://github.com/imaginativeimprint/EcoLoop-Bharat-LiveAI" style="color: #FFD700; text-decoration: none; margin: 0 10px;">📦 GitHub Repository</a> | 
+            <a href="#" style="color: #FFD700; text-decoration: none; margin: 0 10px;">📊 Live Demo</a> | 
+            <a href="#" style="color: #FFD700; text-decoration: none; margin: 0 10px;">📄 Project Report</a>
+        </p>
+        <p style="font-size: 0.9rem; margin-top: 10px;">© 2026 EcoLoop Bharat - Circular Economy Tracker | Powered by Pathway Rust Engine</p>
+        <p style="font-size: 0.8rem; margin-top: 5px;">LiveAI™ Real-time Circular Traceability | Zero-Displacement Waste Management</p>
     </div>
 """, unsafe_allow_html=True)
 
