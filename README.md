@@ -6,6 +6,16 @@
 [![Hackathon](https://img.shields.io/badge/Hackathon-Hack%20For%20Green%20Bharat-green?style=for-the-badge)](https://pathway.com/hackathon)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
+## 👥 Team: TechnoForge
+**Institution:** East West Institute of Technology (EWIT), Bengaluru  
+**Department:** Computer Science & Engineering (2nd Year)  
+
+| Name | Role | Profile |
+| :--- | :--- | :--- |
+| **Shashank P** | Lead Developer | [GitHub](https://github.com/YOUR_GITHUB) |
+| **Gagana CC** | System Architect / Data Logic | [GitHub](https://github.com/GAGANA_GITHUB) |
+
+---
 ## 🌟 The Vision
 India’s industrial waste management is currently a **"Linear Leak."** Once a product leaves the factory, it becomes invisible to the producer, eventually polluting Bharat’s soil and water. **EcoLoop Bharat** transforms this into a **Circular Economy**. 
 
