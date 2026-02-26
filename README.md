@@ -12,8 +12,8 @@
 
 | Name | Role | Profile |
 | :--- | :--- | :--- |
-| **Shashank P** | Lead Developer | [GitHub](https://github.com/YOUR_GITHUB) |
-| **Gagana CC** | System Architect / Data Logic | [GitHub](https://github.com/GAGANA_GITHUB) |
+| **Shashank P** | Lead Developer | [GitHub](https://github.com/imaginativeimprint) |
+| **Gagana CC** | System Architect / Data Logic | [GitHub](https://github.com/Gagana-CC-17) |
 
 ---
 ## 🌟 The Vision
