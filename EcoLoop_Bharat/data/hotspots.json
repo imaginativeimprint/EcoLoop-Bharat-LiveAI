@@ -1,0 +1,17 @@
+[
+  {
+    "city": "Delhi",
+    "recovery_rate": 0.45,
+    "alert": "Critical leakage in North Delhi"
+  },
+  {
+    "city": "Mumbai",
+    "recovery_rate": 0.58,
+    "alert": "Moderate leakage in Dharavi"
+  },
+  {
+    "city": "Bengaluru",
+    "recovery_rate": 0.72,
+    "alert": "Good recovery in Whitefield"
+  }
+]
