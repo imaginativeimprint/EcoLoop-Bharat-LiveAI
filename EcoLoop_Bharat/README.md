@@ -4,7 +4,7 @@
 [![Hackathon](https://img.shields.io/badge/HackForGreenBharat-Winner-blue)](https://example.com)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
 
-## 🏆 Why This Wins
+## 🏆 Why This Wins  
 
 **EcoLoop Bharat** transforms India's waste management through **real-time tracking** powered by Pathway's Rust engine. We don't just track waste - we predict leakage before it happens.
 
