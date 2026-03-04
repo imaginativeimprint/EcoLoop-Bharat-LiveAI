@@ -1,7 +1,7 @@
 # ♻️ EcoLoop Bharat: LiveAI™ Circular Traceability Engine
 
 **"Achieving Zero-Displacement Waste through Real-time Closed-Loop Tracking"**
-
+  
 [![Made with Pathway](https://img.shields.io/badge/Powered%20By-Pathway%20LiveAI-blue?style=for-the-badge&logo=python)](https://pathway.com/)
 [![Hackathon](https://img.shields.io/badge/Hackathon-Hack%20For%20Green%20Bharat-green?style=for-the-badge)](https://pathway.com/hackathon)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
