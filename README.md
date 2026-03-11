@@ -6,7 +6,6 @@
 [![Hackathon](https://img.shields.io/badge/Hackathon-Hack%20For%20Green%20Bharat-green?style=for-the-badge)](https://pathway.com/hackathon)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
- 
 ## 👥 Team: TechnoForge
 **Institution:** East West Institute of Technology (EWIT), Bengaluru  
 **Department:** Computer Science & Engineering (2nd Year)  
