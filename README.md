@@ -9,7 +9,7 @@
 ## 👥 Team: TechnoForge
 **Institution:** East West Institute of Technology (EWIT), Bengaluru  
 **Department:** Computer Science & Engineering (2nd Year)    
-
+ 
 | Name | Role | Profile |
 | :--- | :--- | :--- |
 | **Shashank P** | Lead Developer | [GitHub](https://github.com/imaginativeimprint) |
