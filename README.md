@@ -8,7 +8,7 @@
 
 ## 👥 Team: TechnoForge
 **Institution:** East West Institute of Technology (EWIT), Bengaluru  
-**Department:** Computer Science & Engineering (2nd Year)  
+**Department:** Computer Science & Engineering (2nd Year)    
 
 | Name | Role | Profile |
 | :--- | :--- | :--- |
